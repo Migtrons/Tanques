@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tanques EAAB</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #e8f4fd; min-height: 100vh; }
+
+  /* PIN SCREEN */
+  #pin-screen {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 2rem;
+  }
+  .pin-card {
+    background: #fff; border-radius: 16px; padding: 2.5rem 2rem;
+    box-shadow: 0 4px 20px rgba(0,90,160,0.12); max-width: 360px; width: 100%; text-align: center;
+  }
+  .logo-eaab {
+    width: 64px; height: 64px; background: linear-gradient(135deg, #0066b3, #00a0e9);
+    border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center;
+  }
+  .logo-eaab svg { width: 36px; height: 36px; fill: white; }
+  .pin-title { font-size: 1.2rem; font-weight: 700; color: #0066b3; margin-bottom: 0.25rem; }
+  .pin-subtitle { font-size: 0.85rem; color: #666; margin-bottom: 1.5rem; }
+  .pin-input {
+    width: 100%; padding: 0.75rem 1rem; font-size: 1rem; border: 2px solid #cce4f7;
+    border-radius: 10px; text-align: center; letter-spacing: 3px; outline: none;
+    color: #0066b3; font-weight: 600; transition: border 0.2s;
+  }
+  .pin-input:focus { border-color: #0099dd; }
+  .pin-btn {
+    width: 100%; margin-top: 1rem; padding: 0.85rem; background: #0066b3;
+    color: white; font-size: 1rem; font-weight: 600; border: none; border-radius: 10px;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .pin-btn:active { background: #004e8c; }
+  .pin-error { color: #c0392b; font-size: 0.85rem; margin-top: 0.75rem; display: none; }
+  .pin-footer { margin-top: 1.5rem; font-size: 0.75rem; color: #aaa; }
+
+  /* MAIN APP */
+  #app { display: none; }
+  .header {
+    background: linear-gradient(135deg, #0066b3, #00a0e9);
+    color: white; padding: 1.25rem 1rem 1rem;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .header-icon { font-size: 2rem; }
+  .header-title { font-size: 1.1rem; font-weight: 700; line-height: 1.2; }
+  .header-sub { font-size: 0.75rem; opacity: 0.85; }
+
+  .content { padding: 1.5rem 1rem; max-width: 500px; margin: 0 auto; }
+
+  /* NOT FOUND */
+  #not-found { display: none; text-align: center; padding: 3rem 1rem; }
+  .nf-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .nf-title { font-size: 1.1rem; font-weight: 600; color: #333; }
+  .nf-sub { font-size: 0.85rem; color: #888; margin-top: 0.5rem; }
+
+  /* TANK CARD */
+  #tank-card { display: none; }
+  .tank-name {
+    font-size: 1.3rem; font-weight: 700; color: #0066b3;
+    text-transform: uppercase; margin-bottom: 1.25rem;
+    border-left: 4px solid #00a0e9; padding-left: 0.75rem;
+  }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem; }
+  .info-item {
+    background: white; border-radius: 10px; padding: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0,90,160,0.08);
+  }
+  .info-label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem; }
+  .info-value { font-size: 0.95rem; font-weight: 600; color: #222; }
+  .info-item.estado .info-value.operacion { color: #1a8c4e; }
+  .info-item.estado .info-value.inactivo { color: #c0392b; }
+  .info-item.estado .info-value.otro { color: #e67e22; }
+
+  .obs-box {
+    background: #fffbe6; border: 1px solid #f0d060; border-radius: 10px;
+    padding: 0.85rem; margin-bottom: 1.5rem;
+  }
+  .obs-label { font-size: 0.7rem; color: #a07800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.3rem; }
+  .obs-text { font-size: 0.9rem; color: #555; line-height: 1.5; }
+
+  .nav-title { font-size: 0.8rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem; font-weight: 600; }
+  .nav-buttons { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .nav-btn {
+    display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem;
+    border-radius: 12px; text-decoration: none; border: none; cursor: pointer;
+    font-size: 0.95rem; font-weight: 600; transition: transform 0.1s, opacity 0.2s;
+  }
+  .nav-btn:active { transform: scale(0.98); opacity: 0.9; }
+  .nav-btn.maps { background: #4285f4; color: white; }
+  .nav-btn.waze { background: #06c0d8; color: white; }
+  .nav-btn .btn-icon { width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+  .nav-btn .btn-text { flex: 1; }
+  .nav-btn .btn-label { font-size: 0.75rem; opacity: 0.85; font-weight: 400; display: block; }
+  .no-coords { background: #fff3f3; border: 1px solid #f5c6c6; border-radius: 10px; padding: 0.85rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #c0392b; text-align: center; }
+
+  .footer {
+    text-align: center; padding: 1.5rem 1rem 2rem;
+    border-top: 1px solid #d0e8f7;
+  }
+  .footer-brand { font-size: 0.8rem; color: #0066b3; font-weight: 600; }
+  .footer-handle { font-size: 0.75rem; color: #00a0e9; }
+  .footer-copy { font-size: 0.7rem; color: #aaa; margin-top: 0.25rem; }
+</style>
+</head>
+<body>
+
+<!-- PIN SCREEN -->
+<div id="pin-screen">
+  <div class="pin-card">
+    <div class="logo-eaab">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+    </div>
+    <div class="pin-title">Tanques EAAB</div>
+    <div class="pin-subtitle">Ingresa el PIN de acceso para continuar</div>
+    <input class="pin-input" type="password" id="pin-input" placeholder="••••••••••" maxlength="20" />
+    <button class="pin-btn" onclick="checkPin()">Ingresar</button>
+    <div class="pin-error" id="pin-error">PIN incorrecto. Intenta de nuevo.</div>
+    <div class="pin-footer">Elaborado por Miguel Mesa · @Migtrons</div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="header">
+    <div class="header-icon">💧</div>
+    <div>
+      <div class="header-title">Tanques EAAB</div>
+      <div class="header-sub">Empresa de Acueducto de Bogotá</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="not-found">
+      <div class="nf-icon">🔍</div>
+      <div class="nf-title">Tanque no encontrado</div>
+      <div class="nf-sub">Verifica que el código QR sea válido.</div>
+    </div>
+
+    <div id="tank-card">
+      <div class="tank-name" id="tc-nombre"></div>
+      <div class="info-grid">
+        <div class="info-item estado">
+          <div class="info-label">Estado</div>
+          <div class="info-value" id="tc-estado"></div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Volumen</div>
+          <div class="info-value" id="tc-volumen"></div>
+        </div>
+      </div>
+      <div class="obs-box">
+        <div class="obs-label">📝 Observación</div>
+        <div class="obs-text" id="tc-obs"></div>
+      </div>
+      <div id="nav-section">
+        <div class="nav-title">📍 Navegar hasta el tanque</div>
+        <div class="nav-buttons">
+          <a class="nav-btn maps" id="btn-maps" href="#" target="_blank">
+            <div class="btn-icon">🗺️</div>
+            <div class="btn-text">
+              Google Maps
+              <span class="btn-label">Abrir en Google Maps</span>
+            </div>
+          </a>
+          <a class="nav-btn waze" id="btn-waze" href="#" target="_blank">
+            <div class="btn-icon">🚗</div>
+            <div class="btn-text">
+              Waze
+              <span class="btn-label">Abrir en Waze</span>
+            </div>
+          </a>
+        </div>
+      </div>
+      <div id="no-coords" class="no-coords" style="display:none">⚠️ Coordenadas no disponibles para este tanque.</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-brand">Elaborado por Miguel Mesa</div>
+    <div class="footer-handle">@Migtrons</div>
+    <div class="footer-copy">EAAB · Bogotá D.C.</div>
+  </div>
+</div>
+
+<script>
+const PIN = "DRMA2026MG";
+
+const TANQUES = [{"ID":1,"NombreTanque":"AGUAS CLARAS","Estado":"EN OPERACION","Volumen_m3":150,"Latitud":4.558809,"Longitud":-74.067727,"Observacion":"OK"},{"ID":2,"NombreTanque":"LOS ALPES","Estado":"EN OPERACION","Volumen_m3":6600,"Latitud":4.553533,"Longitud":-74.079771,"Observacion":"Validar volumen con plano record (sur oriental)"},{"ID":3,"NombreTanque":"ALPES II","Estado":"EN OPERACION","Volumen_m3":1200,"Latitud":4.53127,"Longitud":-74.155145,"Observacion":"OK"},{"ID":4,"NombreTanque":"BOSQUE DE PINOS","Estado":"EN OPERACION","Volumen_m3":600,"Latitud":4.725945,"Longitud":-74.018342,"Observacion":"OK"},{"ID":5,"NombreTanque":"BOSQUE MEDINA","Estado":"EN OPERACION","Volumen_m3":500,"Latitud":4.710432,"Longitud":-74.024422,"Observacion":"OK"},{"ID":6,"NombreTanque":"CASA BLANCA","Estado":"EN OPERACION","Volumen_m3":143248,"Latitud":4.579692,"Longitud":-74.163787,"Observacion":"OK"},{"ID":7,"NombreTanque":"CASTILLO VIEJO","Estado":"EN OPERACION","Volumen_m3":750,"Latitud":4.552697,"Longitud":-74.146978,"Observacion":"OK, Revisar Record "},{"ID":8,"NombreTanque":"CASTILLO NUEVO","Estado":"EN OPERACION","Volumen_m3":4400,"Latitud":4.552245,"Longitud":-74.146893,"Observacion":"OK"},{"ID":9,"NombreTanque":"CAZUCA","Estado":"EN OPERACION","Volumen_m3":10000,"Latitud":4.590321,"Longitud":-74.182451,"Observacion":"EN SIGUE TANQUE CONTROL CAZUCA (ok)"},{"ID":10,"NombreTanque":"CAZUCA NUEVO","Estado":"EN OPERACION","Volumen_m3":15000,"Latitud":4.589879,"Longitud":-74.182869,"Observacion":"OK"},{"ID":11,"NombreTanque":"CERRO NORTE II","Estado":"EN OPERACION","Volumen_m3":454,"Latitud":4.736045,"Longitud":-74.018557,"Observacion":"OK"},{"ID":12,"NombreTanque":"CERRO NORTE III","Estado":"EN OPERACION","Volumen_m3":291,"Latitud":4.732479,"Longitud":-74.01866,"Observacion":"OK"},{"ID":13,"NombreTanque":"CERRO NORTE IV","Estado":"EN OPERACION","Volumen_m3":479,"Latitud":4.731471,"Longitud":-74.016066,"Observacion":"OK"},{"ID":14,"NombreTanque":"CERRO NORTE V","Estado":"EN OPERACION","Volumen_m3":377,"Latitud":4.728856,"Longitud":-74.01335,"Observacion":"OK"},{"ID":15,"NombreTanque":"EL CHICO","Estado":"EN OPERACION","Volumen_m3":7000,"Latitud":4.665911,"Longitud":-74.037159,"Observacion":"OK"},{"ID":16,"NombreTanque":"CODITO II","Estado":"EN OPERACION","Volumen_m3":850,"Latitud":4.764219,"Longitud":-74.024477,"Observacion":"VOLUMEN FINAL 850 OK"},{"ID":17,"NombreTanque":"CODITO III","Estado":"EN OPERACION","Volumen_m3":1000,"Latitud":4.763452,"Longitud":-74.021711,"Observacion":"EXISTE OTRO TANQUE  CON 868m3 revisar plano Record, EN SUI AFREGAR UNO COMO CODITO III NUEVO CON 868 m3"},{"ID":18,"NombreTanque":"CONSUELO II","Estado":"EN OPERACION","Volumen_m3":2000,"Latitud":4.578527,"Longitud":-74.068412,"Observacion":"OK"},{"ID":19,"NombreTanque":"EL DORADO I","Estado":"EN OPERACION","Volumen_m3":3000,"Latitud":4.47715,"Longitud":-74.099458,"Observacion":"OK, PTAP  TANQUE DE PLANTA, INCLUIR EN EL SUI, "},{"ID":20,"NombreTanque":"EL DORADO II","Estado":"EN OPERACION","Volumen_m3":3000,"Latitud":4.477114,"Longitud":-74.100859,"Observacion":"OK"},{"ID":21,"NombreTanque":"EGIPTO","Estado":"EN OPERACION","Volumen_m3":1890,"Latitud":4.594328,"Longitud":-74.068219,"Observacion":"OK"},{"ID":22,"NombreTanque":"EL PASO","Estado":"EN OPERACION","Volumen_m3":2000,"Latitud":4.483689,"Longitud":-74.090621,"Observacion":"OK"},{"ID":23,"NombreTanque":"LA FISCALA","Estado":"EN OPERACION","Volumen_m3":8000,"Latitud":4.535733,"Longitud":-74.106269,"Observacion":"OK"},{"ID":24,"NombreTanque":"GACHANCIPA","Estado":"INACTIVO","Volumen_m3":144,"Latitud":4.987406,"Longitud":-73.873677,"Observacion":"OK INACTIVO, ELIMINAR DEL SIGUE"},{"ID":25,"NombreTanque":"GACHANCIPA II","Estado":"EN OPERACION","Volumen_m3":1200,"Latitud":4.987475,"Longitud":-73.873451,"Observacion":"OK"},{"ID":26,"NombreTanque":"JALISCO","Estado":"EN OPERACION","Volumen_m3":5750,"Latitud":4.557532,"Longitud":-74.140704,"Observacion":"EL NUEVO TANQUE QUE ESTA EN CONSTRUCCION SE LLAMARA JALISCO NUEVO"},{"ID":27,"NombreTanque":"JUAN REY ANTIGUO","Estado":"EN OPERACION","Volumen_m3":2000,"Latitud":4.518999,"Longitud":-74.088689,"Observacion":"OK"},{"ID":28,"NombreTanque":"JUAN REY NUEVO","Estado":"EN OPERACION","Volumen_m3":2076,"Latitud":4.518661,"Longitud":-74.088519,"Observacion":"OK"},{"ID":29,"NombreTanque":"LA LAGUNA","Estado":"EN OPERACION","Volumen_m3":1500,"Latitud":4.464222,"Longitud":-74.126787,"Observacion":"CONFIRMAR EN SUI SI 2000, CHEQUEAR"},{"ID":30,"NombreTanque":"MONTEBLANCO","Estado":"EN OPERACION","Volumen_m3":5041,"Latitud":4.503758,"Longitud":-74.114332,"Observacion":"OK"},{"ID":31,"NombreTanque":"PARAISO I","Estado":"EN OPERACION","Volumen_m3":30,"Latitud":4.626218,"Longitud":-74.060925,"Observacion":"CARCAMO, ACTUALMENTE ESTA OPERATIVO, CONSULTA PLANEAMIENTO"},{"ID":32,"NombreTanque":"PARAISO II","Estado":"EN OPERACION","Volumen_m3":900,"Latitud":4.628075,"Longitud":-74.058575,"Observacion":"OK"},{"ID":33,"NombreTanque":"PARAISO III","Estado":"EN OPERACION","Volumen_m3":300,"Latitud":4.62718,"Longitud":-74.054849,"Observacion":"OK"},{"ID":34,"NombreTanque":"PARDO RUBIO II","Estado":"EN OPERACION","Volumen_m3":145,"Latitud":4.634544,"Longitud":-74.057382,"Observacion":"OK"},{"ID":35,"NombreTanque":"PARDO RUBIO III","Estado":"EN OPERACION","Volumen_m3":91,"Latitud":4.634348,"Longitud":-74.055812,"Observacion":"OK"},{"ID":36,"NombreTanque":"PARQUE NACIONAL","Estado":"EN OPERACION","Volumen_m3":51200,"Latitud":4.625649,"Longitud":-74.064327,"Observacion":"OK"},{"ID":37,"NombreTanque":"PIEDRA HERRADA","Estado":"EN OPERACION","Volumen_m3":9000,"Latitud":4.491405,"Longitud":-74.110854,"Observacion":"OK"},{"ID":38,"NombreTanque":"QUIBA","Estado":"EN OPERACION","Volumen_m3":1100,"Latitud":4.543072,"Longitud":-74.155855,"Observacion":"OK"},{"ID":39,"NombreTanque":"QUIBA NUEVO","Estado":"EN OPERACION","Volumen_m3":2300,"Latitud":4.542597,"Longitud":-74.156103,"Observacion":"OK"},{"ID":40,"NombreTanque":"QUINDÍO","Estado":"EN OPERACION","Volumen_m3":2500,"Latitud":4.541218,"Longitud":-74.078717,"Observacion":"OK"},{"ID":41,"NombreTanque":"EL REFUGIO","Estado":"EN OPERACION","Volumen_m3":140,"Latitud":4.490053,"Longitud":-74.096332,"Observacion":"ES UN TANQUE COMUNITARIO, OK"},{"ID":42,"NombreTanque":"SAN DIEGO NUEVO","Estado":"EN OPERACION","Volumen_m3":28000,"Latitud":4.610083,"Longitud":-74.064707,"Observacion":"OK"},{"ID":43,"NombreTanque":"SAN DIONISIO","Estado":"EN OPERACION","Volumen_m3":1000,"Latitud":4.580689,"Longitud":-74.0663,"Observacion":"OK"},{"ID":44,"NombreTanque":"SAN VICENTE NUEVO","Estado":"EN OPERACION","Volumen_m3":6250,"Latitud":4.554546,"Longitud":-74.086325,"Observacion":"OK"},{"ID":45,"NombreTanque":"SAN VICENTE VIEJO","Estado":"EN OPERACION","Volumen_m3":2250,"Latitud":4.554061,"Longitud":-74.086745,"Observacion":"OK"},{"ID":46,"NombreTanque":"SANTA LUCIA","Estado":"EN OPERACION","Volumen_m3":28000,"Latitud":4.573431,"Longitud":-74.122058,"Observacion":"OK"},{"ID":47,"NombreTanque":"SIERRA MORENA II","Estado":"EN OPERACION","Volumen_m3":10200,"Latitud":4.574479,"Longitud":-74.166484,"Observacion":"OK, DOS COMPARTIMIENTOS DE 5100 CADA UNO"},{"ID":48,"NombreTanque":"SIERRA MORENA III","Estado":"EN OPERACION","Volumen_m3":10200,"Latitud":4.574872,"Longitud":-74.170458,"Observacion":"OK,bombeo a santo domingo"},{"ID":49,"NombreTanque":"SILENCIO","Estado":"EN OPERACION","Volumen_m3":30000,"Latitud":4.61863,"Longitud":-74.059204,"Observacion":"OK, DOS COMPARTIMIENTOS DE 15000 CADA UNO"},{"ID":50,"NombreTanque":"SORATAMA I","Estado":"INACTIVO","Volumen_m3":245,"Latitud":4.744352,"Longitud":-74.017547,"Observacion":"1340 m3, contrato de obra 1-01-25400-1462-2019, de acuerdo a plano acue-DIS4263-PL-HID-SO-05-16 de 1-02- 25400-0819-2015, ACTUALIZAR VOLUMEN Y ESTA OPERATIVO EN SUI"},{"ID":51,"NombreTanque":"SORATAMA II","Estado":"EN OPERACION","Volumen_m3":280,"Latitud":4.742322,"Longitud":-74.014399,"Observacion":"OK"},{"ID":52,"NombreTanque":"ALTO SUBA","Estado":"EN OPERACION","Volumen_m3":2000,"Latitud":4.746474,"Longitud":-74.078364,"Observacion":"OK"},{"ID":53,"NombreTanque":"MEDIO SUBA","Estado":"EN OPERACION","Volumen_m3":4000,"Latitud":4.744455,"Longitud":-74.0739,"Observacion":"OK"},{"ID":54,"NombreTanque":"NUEVO SUBA","Estado":"EN OPERACION","Volumen_m3":90000,"Latitud":4.715203,"Longitud":-74.084472,"Observacion":"OK"},{"ID":55,"NombreTanque":"SUCRE ALTO","Estado":"EN OPERACION","Volumen_m3":5800,"Latitud":4.557177,"Longitud":-74.186226,"Observacion":"OK"},{"ID":56,"NombreTanque":"SANTA ANA","Estado":"EN OPERACION","Volumen_m3":30000,"Latitud":4.689502,"Longitud":-74.025005,"Observacion":"OK"},{"ID":57,"NombreTanque":"SANTO DOMINGO ANTIGUO","Estado":"EN OPERACION","Volumen_m3":406,"Latitud":4.576939,"Longitud":-74.17921,"Observacion":"OK,INCLUYE TANQUES ELEVADOS COMUNIDAD"},{"ID":58,"NombreTanque":"ELEVADO SANTO DOMINGO","Estado":"EN OPERACION","Volumen_m3":45,"Latitud":4.577646,"Longitud":-74.177616,"Observacion":"OK"},{"ID":59,"NombreTanque":"NUEVO SANTO DOMINGO","Estado":"EN OPERACION","Volumen_m3":1500,"Latitud":4.57768,"Longitud":-74.177581,"Observacion":"OK"},{"ID":60,"NombreTanque":"TIBITOC BAJO","Estado":"EN OPERACION","Volumen_m3":20000,"Latitud":4.976494,"Longitud":-73.971028,"Observacion":"EN PTAP, CONCILIAR CON ABASTECIMIENTO Y PLANEAMIENTO"},{"ID":61,"NombreTanque":"TIBITOC ALTO","Estado":"EN OPERACION","Volumen_m3":26000,"Latitud":4.974426,"Longitud":-73.971237,"Observacion":"EN PTAP, CONCILIAR CON ABASTECIMIENTO Y PLANEAMIENTO"},{"ID":62,"NombreTanque":"YOMASA","Estado":"EN OPERACION","Volumen_m3":300,"Latitud":4.498752,"Longitud":-74.076634,"Observacion":"EN PTAP, CONCILIAR CON ABASTECIMIENTO Y PLANEAMIENTO"},{"ID":63,"NombreTanque":"UNICERROS","Estado":"INACTIVO","Volumen_m3":560,"Latitud":4.704785,"Longitud":-74.020021,"Observacion":"OK, EN ESTADO DE CONSTRUCCION NUEVO TANQUE"},{"ID":64,"NombreTanque":"USAQUEN NUEVO","Estado":"EN OPERACION","Volumen_m3":1000,"Latitud":4.689794,"Longitud":-74.019546,"Observacion":"OK"},{"ID":65,"NombreTanque":"EL UVAL","Estado":"EN OPERACION","Volumen_m3":3113,"Latitud":4.473477,"Longitud":-74.119803,"Observacion":"OK, FISICAMENTE Uval Antiguo con 1110 m3 y Uval Nuevo con 2003 m3"},{"ID":66,"NombreTanque":"VITELMA","Estado":"EN OPERACION","Volumen_m3":38000,"Latitud":4.575185,"Longitud":-74.073136,"Observacion":"OK, Bombeo para Consuelo y San Dionisio"},{"ID":67,"NombreTanque":"EL VOLADOR","Estado":"EN OPERACION","Volumen_m3":3850,"Latitud":4.546635,"Longitud":-74.154181,"Observacion":"OK"},{"ID":68,"NombreTanque":"CERRO NORTE I","Estado":"-","Volumen_m3":132,"Latitud":4.736871,"Longitud":-74.022636,"Observacion":"CARCAMO CONTINGENCIA"},{"ID":69,"NombreTanque":"CODITO I","Estado":"-","Volumen_m3":"-","Latitud":4.762748,"Longitud":-74.026918,"Observacion":"CARCAMO CONTINGENCIA"},{"ID":70,"NombreTanque":"CODITO IV","Estado":"-","Volumen_m3":5000,"Latitud":4.764774,"Longitud":-74.018716,"Observacion":"PENDEINTE DISTRIBUCION"},{"ID":71,"NombreTanque":"COLUMNAS","Estado":null,"Volumen_m3":"-","Latitud":4.558526,"Longitud":-74.087885,"Observacion":"INACTIVO, CARCAMO "},{"ID":72,"NombreTanque":"SAN DIEGO ANTIGUO","Estado":"-","Volumen_m3":"-","Latitud":4.611641,"Longitud":-74.064706,"Observacion":"OPERATIVO PARA CONTINGENCIA"},{"ID":73,"NombreTanque":"SUBA CERRO NORTE","Estado":"-","Volumen_m3":116,"Latitud":4.744715,"Longitud":-74.069664,"Observacion":"CARCAMO OPERATIVO 116 M3 CONFIRMAR"},{"ID":74,"NombreTanque":"CARCAMO SUCRE TERREROS","Estado":"-","Volumen_m3":98,"Latitud":4.575696,"Longitud":-74.191255,"Observacion":"CARCAMO OPERATIVO 98 m3"},{"ID":75,"NombreTanque":"CARCAMO SUCRE INTERMEDIO","Estado":"-","Volumen_m3":98,"Latitud":4.56665,"Longitud":-74.187096,"Observacion":"CARCAMO OPERATIVO 98 m3"},{"ID":76,"NombreTanque":"INTERVEREDAL LA CALERA I","Estado":"EN OPERACION","Volumen_m3":87,"Latitud":4.688042,"Longitud":-74.006353,"Observacion":"CARCAMO OPERATIVO"},{"ID":77,"NombreTanque":"INTERVEREDAL LA CALERA II","Estado":"EN OPERACION","Volumen_m3":295,"Latitud":4.68416,"Longitud":-74.010978,"Observacion":"OPERATIVO"},{"ID":78,"NombreTanque":"TIBITOC LAVADO FILTROS","Estado":"EN OPERACION","Volumen_m3":3634,"Latitud":4.975304,"Longitud":-73.971554,"Observacion":"OPERATIVO,EN PTAP, CONCILIAR CON ABASTECIMIENTO Y PLANEAMIENTO"},{"ID":79,"NombreTanque":"WIESNER","Estado":"EN OPERACION","Volumen_m3":50000,"Latitud":4.691048,"Longitud":-73.996052,"Observacion":"ABASTECIMEINTO PENDIENTE"},{"ID":80,"NombreTanque":"BOMBEO ALTOS DE CAZUCÁ","Estado":"-","Volumen_m3":"-","Latitud":4.579564,"Longitud":-74.175971,"Observacion":"CARCAMO OPERATIVO"},{"ID":81,"NombreTanque":"BAJO LA VEREDITA","Estado":"-","Volumen_m3":"-","Latitud":4.585269,"Longitud":-74.231659,"Observacion":"SIN OPERACIÓN"},{"ID":82,"NombreTanque":"EL VINCULO","Estado":"-","Volumen_m3":"-","Latitud":4.562015,"Longitud":-74.218715,"Observacion":"SIN OPERACIÓN"},{"ID":83,"NombreTanque":"ELEVADO LA VEREDITA","Estado":"-","Volumen_m3":"-","Latitud":4.586933,"Longitud":-74.231857,"Observacion":"SIN OPERACIÓN"},{"ID":84,"NombreTanque":"LOURDES","Estado":"-","Volumen_m3":2400,"Latitud":4.58786,"Longitud":-74.071753,"Observacion":"SI ESTA REPORTADO AL SUI, INACTIVO"},{"ID":85,"NombreTanque":"SUCCIÓN EL VINCULO","Estado":"-","Volumen_m3":"-","Latitud":4.569435,"Longitud":-74.217821,"Observacion":"SIN OPERACIÓN"},{"ID":86,"NombreTanque":"SEMINARIO","Estado":"-","Volumen_m3":"-","Latitud":4.673252,"Longitud":-74.042705,"Observacion":"ELIMINAR DEL SIGUE"},{"ID":87,"NombreTanque":"PARDO RUBIO I","Estado":"-","Volumen_m3":245,"Latitud":4.635057,"Longitud":-74.059713,"Observacion":"CARCAMO EN CONTINGENCIA"}];
+
+function checkPin() {
+  const val = document.getElementById('pin-input').value.trim();
+  if (val === PIN) {
+    document.getElementById('pin-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadTank();
+  } else {
+    document.getElementById('pin-error').style.display = 'block';
+    document.getElementById('pin-input').value = '';
+  }
+}
+
+document.getElementById('pin-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') checkPin();
+});
+
+function loadTank() {
+  const params = new URLSearchParams(window.location.search);
+  const id = parseInt(params.get('id'));
+  const tanque = TANQUES.find(t => t.ID === id);
+
+  if (!tanque) {
+    document.getElementById('not-found').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('tank-card').style.display = 'block';
+  document.getElementById('tc-nombre').textContent = tanque.NombreTanque;
+
+  const estadoEl = document.getElementById('tc-estado');
+  const estado = tanque.Estado || '-';
+  estadoEl.textContent = estado;
+  if (estado === 'EN OPERACION') estadoEl.className = 'info-value operacion';
+  else if (estado === 'INACTIVO') estadoEl.className = 'info-value inactivo';
+  else estadoEl.className = 'info-value otro';
+
+  const vol = tanque.Volumen_m3;
+  document.getElementById('tc-volumen').textContent = (vol && vol !== '-') ? Number(vol).toLocaleString('es-CO') + ' m³' : 'N/D';
+  document.getElementById('tc-obs').textContent = tanque.Observacion || 'Sin observaciones';
+
+  if (tanque.Latitud && tanque.Longitud) {
+    const lat = tanque.Latitud, lng = tanque.Longitud;
+    document.getElementById('btn-maps').href = `https://maps.google.com/maps?daddr=${lat},${lng}`;
+    document.getElementById('btn-waze').href = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
+  } else {
+    document.getElementById('nav-section').style.display = 'none';
+    document.getElementById('no-coords').style.display = 'block';
+  }
+}
+</script>
+</body>
+</html>
